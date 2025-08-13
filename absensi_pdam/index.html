@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Absensi Karyawan</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#1e40af',
+                        danger: '#ef4444',
+                        success: '#10b981'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .sidebar {
+            transition: all 0.3s ease;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.active {
+                transform: translateX(0);
+            }
+        }
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10;
+        }
+        .overlay.active {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Mobile sidebar toggle and overlay -->
+    <div class="md:hidden fixed top-4 left-4 z-20">
+        <button id="sidebarToggle" class="p-2 rounded-lg bg-white shadow-md">
+            <i class="fas fa-bars text-gray-700"></i>
+        </button>
+    </div>
+    <div id="overlay" class="overlay"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-full w-64 bg-gray-800 text-white p-4 z-20">
+        <div class="flex items-center justify-between border-b border-gray-700 pb-4 mb-6">
+            <div class="flex items-center space-x-2">
+                <h1 class="text-xl font-bold">ABSENSI PRO</h1>
+            </div>
+            <button id="closeSidebar" class="md:hidden">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="mb-8">
+            <div class="flex items-center space-x-3 bg-gray-700 p-3 rounded-lg">
+                <div class="flex-shrink-0 h-12 w-12 flex items-center justify-center rounded-full bg-blue-600 text-white">
+                    <i class="fas fa-user-shield text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="font-semibold">Admin HRD</h3>
+                    <p class="text-gray-400 text-sm">admin@perusahaan.com</p>
+                </div>
+            </div>
+        </div>
+
+        <nav>
+            <ul class="space-y-2">
+                <li>
+                    <a href="#dashboard" class="flex items-center space-x-2 p-2 rounded-lg bg-blue-900 text-white">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="absen.html" class="flex items-center space-x-2 p-2 rounded-lg bg-blue-900 text-white">
+                        <i class="fas fa-calendar-check"></i>
+                        <span>Absensi</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#karyawan" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-users"></i>
+                        <span>Karyawan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#penggajian" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-money-bill-wave"></i>
+                        <span>Penggajian</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#laporan" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Laporan</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="#pengaturan" class="flex items-center space-x-2 p-2 rounded-lg hover:bg-gray-700">
+                        <i class="fas fa-cog"></i>
+                        <span>Pengaturan</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="md:ml-64 p-6">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <h2 class="text-2xl font-bold text-gray-800">Sistem Absensi Karyawan</h2>
+            <div class="flex items-center space-x-4">
+                <button class="p-2 rounded-full bg-white shadow-md">
+                    <i class="fas fa-bell text-gray-600"></i>
+                </button>
+                <button id="logoutBtn" class="flex items-center space-x-2 bg-red-100 text-red-700 px-4 py-2 rounded-lg hover:bg-red-200 transition">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Attendance Status -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">Total Karyawan</p>
+                        <h3 class="text-2xl font-bold mt-1">124</h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-blue-100 text-blue-600">
+                        <i class="fas fa-users"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-medium">+8.2% dari bulan lalu</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">Hadir Hari Ini</p>
+                        <h3 class="text-2xl font-bold mt-1">98</h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-green-100 text-green-600">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-red-600 text-sm font-medium">-2% dari kemarin</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">Izin/Cuti</p>
+                        <h3 class="text-2xl font-bold mt-1">12</h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-yellow-100 text-yellow-600">
+                        <i class="fas fa-user-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-medium">+3 dari kemarin</span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-500 text-sm">Keterlambatan</p>
+                        <h3 class="text-2xl font-bold mt-1">15</h3>
+                    </div>
+                    <div class="p-3 rounded-full bg-red-100 text-red-600">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    <span class="text-green-600 text-sm font-medium">-5 dari kemarin</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance Form -->
+        <div class="grid grid-cols-1 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Form Absensi</h3>
+                </div>
+                <div class="space-y-6">
+                    <form id="attendanceForm">
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">ID Karyawan</label>
+                            <input type="text" id="employeeId" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan ID karyawan (contoh: KRY001)" required>
+                            <p class="mt-1 text-xs text-gray-500">Masukkan ID karyawan Anda menggunakan format huruf dan angka</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama</label>
+                            <input type="text" id="employeeName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="Masukkan nama karyawan" required>
+                        </div>
+                    <div class="hidden" id="clockInTime">
+                        <p class="text-sm text-gray-600">Check In: <span id="clockInDisplay">-</span></p>
+                    </div>
+                    <div class="hidden" id="clockOutTime">
+                        <p class="text-sm text-gray-600">Check Out: <span id="clockOutDisplay">-</span></p>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button class="bg-green-500 hover:bg-green-600 text-white py-3 px-4 rounded-lg font-medium transition">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Check In
+                        </button>
+                        <button class="bg-red-500 hover:bg-red-600 text-white py-3 px-4 rounded-lg font-medium transition">
+                            <i class="fas fa-sign-out-alt mr-2"></i>Check Out
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button class="bg-yellow-500 hover:bg-yellow-600 text-white py-3 px-4 rounded-lg font-medium transition">
+                            <i class="fas fa-clock mr-2"></i>Telat/Izin
+                        </button>
+                        <button class="bg-blue-500 hover:bg-blue-600 text-white py-3 px-4 rounded-lg font-medium transition">
+                            <i class="fas fa-umbrella-beach mr-2"></i>Cuti
+                        </button>
+                        <button class="bg-purple-500 hover:bg-purple-600 text-white py-3 px-4 rounded-lg font-medium transition">
+                            <i class="fas fa-stethoscope mr-2"></i>Sakit
+                        </button>
+                    </div>
+                </div>
+            </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Absensi Hari Ini</h3>
+                    <button class="text-blue-600 text-sm hover:underline">Lihat Semua</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam Masuk</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jam Keluar</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10 flex items-center justify-center rounded-full bg-gray-200">
+                                            <i class="fas fa-user text-gray-600"></i>
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Andi Wijaya</div>
+                                            <div class="text-sm text-gray-500">IT001</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">08:02</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">17:15</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a3e6a13e-fca0-4172-a487-97af5ca8cf19.png" alt="Foto profil karyawan wanita dengan rambut panjang dan kacamata" class="h-10 w-10 rounded-full">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Budi Hartono</div>
+                                            <div class="text-sm text-gray-500">HR002</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">08:15</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">-</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">Telat</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a5aa5880-5e8c-40e7-9285-121602cb4f59.png" alt="Foto profil karyawan pria berjanggut dengan latar belakang abu-abu" class="h-10 w-10 rounded-full">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Citra Dewi</div>
+                                            <div class="text-sm text-gray-500">MN003</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">-</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">-</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Absen</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ebfa6e5f-5238-45ca-9a6e-b88189ce2615.png" alt="Foto profil karyawan wanita tersenyum dengan blazer merah muda" class="h-10 w-10 rounded-full">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Dewi Lestari</div>
+                                            <div class="text-sm text-gray-500">FN004</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">07:58</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">17:20</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hadir</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <div class="flex items-center">
+                                        <div class="flex-shrink-0 h-10 w-10">
+                                            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/53fb97ab-bd16-4b02-92f0-0e1dc106ced4.png" alt="Foto profil karyawan pria berambut pendek dengan kemeja putih" class="h-10 w-10 rounded-full">
+                                        </div>
+                                        <div class="ml-4">
+                                            <div class="text-sm font-medium text-gray-900">Eko Prasetyo</div>
+                                            <div class="text-sm text-gray-500">MK005</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">-</td>
+                                <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">-</td>
+                                <td class="px-4 py-3 whitespace-nowrap">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-blue-100 text-blue-800">Ijin</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Perhitungan Gaji -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex justify-between items-center mb-6">
+                    <h3 class="text-xl font-semibold">Perhitungan Gaji Bulan Ini</h3>
+                    <button class="text-blue-600 text-sm hover:underline">Proses Semua</button>
+                </div>
+                <div class="space-y-4">
+                    <div class="p-4 border border-gray-200 rounded-lg">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Total Karyawan:</span>
+                            <span class="font-medium">124</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Total Gaji:</span>
+                            <span class="font-medium">Rp 875.425.000</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Potongan Absen:</span>
+                            <span class="font-medium text-red-600">Rp 12.750.000</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Potongan Telat:</span>
+                            <span class="font-medium text-red-600">Rp 3.200.000</span>
+                        </div>
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-gray-700">Bonus Hadir:</span>
+                            <span class="font-medium text-green-600">Rp 8.500.000</span>
+                        </div>
+                        <div class="flex justify-between items-center pt-2 border-t border-gray-200 mt-2">
+                            <span class="text-gray-700 font-semibold">Total Bersih:</span>
+                            <span class="font-bold text-lg">Rp 880.975.000</span>
+                        </div>
+                    </div>
+
+                    <!-- Statistik Kehadiran -->
+                    <div class="pt-4">
+                        <h4 class="text-lg font-semibold mb-3">Statistik Kehadiran</h4>
+                        <div class="space-y-3">
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Kehadiran (85%)</span>
+                                    <span>105/124</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-green-600 h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Keterlambatan (12%)</span>
+                                    <span>15/124</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-yellow-500 h-2 rounded-full" style="width: 12%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Absen (3%)</span>
+                                    <span>4/124</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-red-600 h-2 rounded-full" style="width: 3%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Attendance History -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold">5 Karyawan Dengan Potongan Gaji Terbesar</h3>
+                <button class="text-blue-600 text-sm hover:underline">Lihat Semua</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Divisi</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Absen</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Telat</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Potongan</th>
+                            <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gaji Bersih</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/fd529333-9e01-4fac-9926-31d17eb838ba.png" alt="Foto profil karyawan pria dengan ekspresi serius dan kemeja formal" class="h-10 w-10 rounded-full">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Fahmi Ramadhan</div>
+                                        <div class="text-sm text-gray-500">MK008</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Marketing</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">4 hari</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">5 kali</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">Rp 1.250.000</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Rp 6.750.000</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f620d630-5c61-4517-b0a1-b422fd042131.png" alt="Foto profil karyawan wanita dengan rambut ikal dan senyum ramah" class="h-10 w-10 rounded-full">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Gita Puspita</div>
+                                        <div class="text-sm text-gray-500">HR012</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">HRD</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">3 hari</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">4 kali</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">Rp 975.000</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Rp 7.025.000</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/39e4dc92-023e-4e31-a9b7-8eff3bc23290.png" alt="Foto profil karyawan pria muda dengan kemeja kotak-kotak" class="h-10 w-10 rounded-full">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Hendra Kurniawan</div>
+                                        <div class="text-sm text-gray-500">IT007</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">IT</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">2 hari</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">6 kali</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">Rp 850.000</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Rp 8.150.000</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/89dc6e09-2813-449c-b11e-401a6ed28c44.png" alt="Foto profil karyawan wanita berhijab dengan ekspresi ramah" class="h-10 w-10 rounded-full">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Indriyani</div>
+                                        <div class="text-sm text-gray-500">FN009</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Finance</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">3 hari</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">2 kali</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">Rp 750.000</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Rp 7.250.000</td>
+                        </tr>
+                        <tr>
+                            <td class="px-4 py-3 whitespace-nowrap">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0 h-10 w-10">
+                                        <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/e23f98ca-346b-493a-99da-8b0bf96f307f.png" alt="Foto profil karyawan pria dengan kacamata dan dasi merah" class="h-10 w-10 rounded-full">
+                                    </div>
+                                    <div class="ml-4">
+                                        <div class="text-sm font-medium text-gray-900">Joko Susilo</div>
+                                        <div class="text-sm text-gray-500">SL015</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Sales</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">1 hari</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">5 kali</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-red-600 font-medium">Rp 650.000</td>
+                            <td class="px-4 py-3 whitespace-nowrap text-sm text-gray-900">Rp 7.350.000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sidebar toggle for mobile
+        const sidebarToggle = document.getElementById('sidebarToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        const closeSidebar = document.getElementById('closeSidebar');
+
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.add('active');
+            overlay.classList.add('active');
+        });
+
+        closeSidebar.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('active');
+            overlay.classList.remove('active');
+        });
+
+        // Logout confirmation
+        const logoutBtn = document.getElementById('logoutBtn');
+        logoutBtn.addEventListener('click', () => {
+            if(confirm('Anda yakin ingin logout?')) {
+                // Redirect to login page or handle logout
+                window.location.href = '#';
+            }
+        });
+
+        // Attendance functionality
+        const attendanceRecords = {};
+        
+        function validateEmployeeId(id) {
+            // Simple validation for alphanumeric ID with minimum 3 characters
+            return /^[A-Za-z0-9]{3,}$/.test(id);
+        }
+
+        function clockIn() {
+            const employeeId = document.getElementById('employeeId').value.trim();
+            if (!employeeId) {
+                alert('Harap masukkan ID karyawan');
+                return;
+            }
+            
+            if (!validateEmployeeId(employeeId)) {
+                alert('ID karyawan harus berupa kombinasi huruf dan angka (minimal 3 karakter)');
+                return;
+            }
+
+            const now = new Date();
+            
+            document.getElementById('clockInTime').classList.remove('hidden');
+            document.getElementById('clockInDisplay').textContent = now.toLocaleTimeString();
+            
+            alert(`Check In berhasil untuk ID ${employeeId} pada ${now.toLocaleString()}`);
+        }
+        
+        function clockOut() {
+            const employeeId = document.getElementById('employeeId').value.trim();
+            if (!employeeId) {
+                alert('Harap masukkan ID karyawan');
+                return;
+            }
+            
+            if (!attendanceRecords[employeeId]?.clockIn) {
+                alert('Anda belum Check In hari ini');
+                return;
+            }
+            
+            const now = new Date();
+            attendanceRecords[employeeId].clockOut = now;
+            
+            document.getElementById('clockOutTime').classList.remove('hidden');
+            document.getElementById('clockOutDisplay').textContent = now.toLocaleTimeString();
+            
+            alert(`Check Out berhasil untuk ID ${employeeId} pada ${now.toLocaleString()}`);
+        }
+        
+        document.querySelector('.bg-green-500').addEventListener('click', function(e) {
+            e.preventDefault();
+            clockIn();
+        });
+        
+        document.querySelector('.bg-red-500').addEventListener('click', function(e) {
+            e.preventDefault();
+            const employeeId = document.getElementById('employeeId').value;
+            const employeeName = document.getElementById('employeeName').value;
+            
+            if (!employeeId || !employeeName) {
+                alert('Harap isi ID dan Nama karyawan');
+                return;
+            }
+
+            const now = new Date();
+            let records = loadFromLocalStorage();
+            let todayRecord = records.find(r => 
+                r.id === employeeId && 
+                r.date === now.toLocaleDateString() && 
+                !r.clockOut
+            );
+
+            if (!todayRecord) {
+                alert('Belum ada record Check In hari ini');
+                return;
+            }
+
+            todayRecord.clockOut = now.toLocaleTimeString();
+            localStorage.setItem('attendanceRecords', JSON.stringify(records));
+            
+            document.getElementById('clockOutTime').classList.remove('hidden');
+            document.getElementById('clockOutDisplay').textContent = now.toLocaleTimeString();
+            
+            alert(`Check Out berhasil untuk ${employeeName} (${employeeId})`);
+        });
+
+        // Sample data for charts (would be replaced with real data in production)
+        const sampleData = {
+            labels: ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'],
+            datasets: [
+                {
+                    label: 'Kehadiran',
+                    data: [100, 110, 105, 115, 95, 50],
+                    backgroundColor: 'rgba(16, 185, 129, 0.5)',
+                    borderColor: 'rgba(16, 185, 129, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Keterlambatan',
+                    data: [10, 15, 8, 12, 20, 2],
+                    backgroundColor: 'rgba(245, 158, 11, 0.5)',
+                    borderColor: 'rgba(245, 158, 11, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Absen',
+                    data: [5, 3, 2, 1, 5, 8],
+                    backgroundColor: 'rgba(239, 68, 68, 0.5)',
+                    borderColor: 'rgba(239, 68, 68, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        // In a real implementation, we would initialize charts here with libraries like Chart.js
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chart initialization would go here
+            console.log('Sistem absensi siap digunakan');
+            
+            // For demonstration: Show a welcome toast
+            setTimeout(() => {
+                alert('Selamat datang di Sistem Absensi & Penggajian Karyawan');
+            }, 500);
+        });
+    </script>
+</body>
+</html>

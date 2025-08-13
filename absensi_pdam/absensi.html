@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Absensi & Gaji Karyawan</title>
+</head>
+<body>
+    <h1>Absensi & Gaji Karyawan</h1>
+    <form method="POST" action="/absen">
+        <label>Pilih Karyawan:</label>
+        <select name="nama">
+            {% for nama in karyawan %}
+            <option value="{{ nama }}">{{ nama }}</option>
+            {% endfor %}
+        </select>
+        <label>Absensi:</label>
+        <select name="hadir">
+            <option value="hadir">Hadir</option>
+            <option value="tidak">Tidak Hadir</option>
+        </select>
+        <button type="submit">Submit</button>
+    </form>
+    <hr>
+    <h2>Data Karyawan</h2>
+    <table border="1">
+        <tr>
+            <th>Nama</th>
+            <th>Gaji Pokok</th>
+            <th>Absensi</th>
+            <th>Gaji Setelah Potongan</th>
+        </tr>
+        {% for nama, data in karyawan.items() %}
+        <tr>
+            <td>{{ nama }}</td>
+            <td>Rp{{ "{:,}".format(data['gaji_pokok']) }}</td>
+            <td>
+                {% for hadir in data['absensi'] %}
+                    {{ '✔️' if hadir else '❌' }}
+                {% endfor %}
+            </td>
+            <td>Rp{{ "{:,}".format(hitung_gaji(data)) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+</body>
+</html>
